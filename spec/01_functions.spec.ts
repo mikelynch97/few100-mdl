@@ -1,4 +1,5 @@
-import { isEven } from './utils';
+import { isEven, formatter, identity, jesseDecorator } from './utils';
+import { format } from 'url';
 
 describe('functions', () => {
     describe('parameters to functions', () => {
@@ -127,6 +128,122 @@ describe('array methods', () => {
 
             const total2 = numbers.reduce((c, n) => c + n, 100);
             expect(total2).toBe(145);
+        });
+    });
+    describe('some more higher order functions', () => {
+        describe('a function that takes a function as an argument', () => {
+            it('a kind of decorator', () => {
+                const response = formatter('Hello World!', identity);
+                expect(response).toBe('HELLO_WORLD!');
+
+                const response2 = formatter('Hello World!');
+                expect(response2).toBe('HELLO_WORLD!');
+
+                const jesseresponse = formatter('Hello World!', (s) => `***${s}***`);
+                expect(jesseresponse).toBe('***HELLO_WORLD!***');
+
+                const bangSurround = jesseDecorator('!');
+                const jr2 = formatter('Hello World!', bangSurround);
+                expect(jr2).toBe('!!!HELLO_WORLD!!!!');
+
+                const jr3 = formatter('Hello World!', jesseDecorator('@'));
+                expect(jr3).toBe('@@@HELLO_WORLD!@@@');
+            });
+        });
+    });
+    describe('making elements with various techniques', () => {
+        it('straight-ahead procedural programming', () => {
+
+            function tagMaker(tag: string, content: string) {
+                return `<${tag}>${content}</${tag}>`;
+            }
+
+            expect(tagMaker('h1', 'Hello')).toBe('<h1>Hello</h1>');
+            expect(tagMaker('h1', 'Dog')).toBe('<h1>Dog</h1>');
+            expect(tagMaker('h1', 'Cat')).toBe('<h1>Cat</h1>');
+            expect(tagMaker('p', 'Mouse')).toBe('<p>Mouse</p>');
+        });
+        it('doing it with objects', () => {
+
+            class TagMaker {
+
+
+                constructor(private tag: string) { }
+
+                make(content: string) {
+                    return `<${this.tag}>${content}</${this.tag}>`;
+                }
+
+            }
+
+            const h1Maker = new TagMaker('h1');
+            const pMaker = new TagMaker('p');
+
+
+            expect(h1Maker.make('Hello')).toBe('<h1>Hello</h1>');
+            expect(h1Maker.make('Dog')).toBe('<h1>Dog</h1>');
+            expect(h1Maker.make('Cat')).toBe('<h1>Cat</h1>');
+            expect(pMaker.make('Mouse')).toBe('<p>Mouse</p>');
+
+        });
+
+        it('a functional approach', () => {
+
+            function tagMaker(tag: string) {
+                return (content: string) => `<${tag}>${content}</${tag}>`;
+            }
+
+            const h1Maker = tagMaker('h1');
+            const pMaker = tagMaker('p');
+
+            expect(h1Maker('Hello')).toBe('<h1>Hello</h1>');
+            expect(h1Maker('Dog')).toBe('<h1>Dog</h1>');
+            expect(h1Maker('Cat')).toBe('<h1>Cat</h1>');
+            expect(pMaker('Mouse')).toBe('<p>Mouse</p>');
+            expect(tagMaker('h2')('Tacos')).toBe('<h2>Tacos</h2>');
+        });
+    });
+    describe('immutability', () => {
+        it('with arrays', () => {
+            const numbers = [2, 3, 4, 5];
+
+            const newNumbers = [1, ...numbers, 6];
+            expect(newNumbers).toEqual([1, 2, 3, 4, 5, 6]);
+            expect(numbers).toEqual([2, 3, 4, 5]);
+        });
+        it('removing an item from an array', () => {
+            const numbers = [2, 3, 4, 5];
+            const newNumbers = numbers.filter(n => n !== 4);
+            expect(newNumbers).toEqual([2, 3, 5]);
+            expect(numbers).toEqual([2, 3, 4, 5]);
+        });
+
+        it('do some stuff with objects', () => {
+
+            interface Employee {
+                id: string;
+                firstName: string;
+                lastName: string;
+                department: string;
+            }
+
+            const bob: Employee = {
+                id: '99',
+                firstName: 'Robert',
+                lastName: 'Smith',
+                department: 'Guitar. And Crying'
+            };
+
+            // bob.department = 'DEV';
+
+            const newBob = { ...bob, department: 'DEV' };
+
+            expect(newBob).toEqual({
+                id: '99',
+                firstName: 'Robert',
+                lastName: 'Smith',
+                department: 'DEV'
+            });
         });
     });
 });
